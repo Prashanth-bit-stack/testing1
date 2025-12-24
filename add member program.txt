@@ -1,0 +1,118 @@
+--addmember--
+package practice;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.openqa.selenium.By;
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.support.ui.Select;
+import org.testng.Assert;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Parameters;
+import org.testng.annotations.Test;
+
+public class IVS_QP6 {
+
+    WebDriver driver;
+
+    @BeforeClass
+    public void setup() {
+        System.setProperty("", "");
+        driver = new FirefoxDriver();
+        driver.get("");
+        driver.manage().window().maximize();
+        driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+    }
+
+    @Test(priority = 0)
+    public void addMember() throws IOException {
+
+        driver.findElement(By.id("")).click(); // click on add a member
+
+        FileInputStream fis = new FileInputStream("");
+        HSSFWorkbook wb = new HSSFWorkbook(fis);
+        HSSFSheet sheet = wb.getSheet("");
+
+        for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+
+            String first = sheet.getRow(i).getCell(0).getStringCellValue();
+            String first2 = sheet.getRow(i).getCell(1).getStringCellValue();
+            long first3 = (long) sheet.getRow(i).getCell(2).getNumericCellValue();
+
+            driver.findElement(By.id("")).sendKeys(first);
+
+            Select s = new Select(driver.findElement(By.id("")));
+            s.selectByVisibleText(first2);
+
+            driver.findElement(By.id("")).sendKeys(String.valueOf(first3));
+            driver.findElement(By.id("")).click(); // click on add member button after entering the details
+
+            String msg = driver.findElement(By.id("")).getText();
+            Assert.assertEquals(msg, "Member Added Successfully !!");
+            System.out.println(msg);
+
+            sheet.getRow(i).createCell(3).setCellValue(msg);
+        }
+
+        FileOutputStream fos = new FileOutputStream("");
+        wb.write(fos);
+        wb.close();
+
+        driver.findElement(By.id("")).click(); // click on home link
+    }
+
+    @Test(priority = 1)
+    @Parameters({ "username", "password" })
+    public void login(String username, String password) throws IOException {
+
+        driver.findElement(By.id("")).click(); // click on already a member
+        driver.findElement(By.id("")).sendKeys(username);
+        driver.findElement(By.id("")).sendKeys(password);
+        driver.findElement(By.id("")).click(); // click on login
+        driver.findElement(By.id("")).click(); // click on dash board
+
+        File src = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
+        FileUtils.copyFile(src, new File("/image.png"));
+    }
+
+    @Test(priority = 2)
+    public void addCourse() {
+
+        Select e = new Select(driver.findElement(By.id("")));
+        e.selectByVisibleText("Agile Testing");
+
+        Select l = new Select(driver.findElement(By.id("")));
+        l.selectByVisibleText("Educator");
+
+        driver.findElement(By.id("")).click(); // Add details button
+
+        WebElement table = driver.findElement(By.id(""));
+        List<WebElement> rows = table.findElements(By.tagName("tr"));
+
+        for (int i = 0; i < rows.size(); i++) {
+            List<WebElement> cols = rows.get(i).findElements(By.tagName("td"));
+            System.out.println(cols.get(1).getText());
+        }
+
+        driver.findElement(By.id("")).click(); // click on sign out
+    }
+
+    @AfterClass
+    public void teardown() {
+        driver.close();
+        driver.quit();
+    }
+}
