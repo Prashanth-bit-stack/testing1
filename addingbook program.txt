@@ -1,0 +1,166 @@
+--addingbook--
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.openqa.selenium.By;
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.support.ui.Select;
+import org.testng.Assert;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Parameters;
+import org.testng.annotations.Test;
+
+public class IVS_QP2 {
+
+    WebDriver driver;
+
+    @BeforeClass
+    public void setup() {
+        System.setProperty("webdriver.gecko.driver", "/home/user/Desktop/geckodriver");
+        driver = new FirefoxDriver();
+        driver.get(""); // url
+        driver.manage().window().maximize();
+        driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+    }
+
+    @Test(priority = 1)
+    public void test1() throws IOException {
+
+        driver.findElement(By.id("")).click();
+        String path = ""; // excel path
+
+        FileInputStream fis = new FileInputStream(path);
+        XSSFWorkbook wb = new XSSFWorkbook(fis);
+        XSSFSheet sheet = wb.getSheet(""); // sheet name
+
+        for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+
+            String first = sheet.getRow(i).getCell(0).getStringCellValue();
+            int first1 = (int) sheet.getRow(i).getCell(1).getNumericCellValue();
+            long first2 = (long) sheet.getRow(i).getCell(2).getNumericCellValue();
+
+            driver.findElement(By.id("")).sendKeys(first);
+
+            WebElement we = driver.findElement(By.id("")); // dropdown id
+            Select s = new Select(we);
+            s.selectByVisibleText(String.valueOf(first1));
+
+            Select st = new Select(driver.findElement(By.id(""))); // dropdown ki id
+            st.selectByVisibleText(String.valueOf(first2));
+
+            driver.findElement(By.id("")).click(); // click on register
+            String msg = driver.findElement(By.id("")).getText(); // text aega uski id
+            System.out.println(msg);
+
+            String msg1 = driver.switchTo().alert().getText();
+            driver.switchTo().alert().accept();
+            System.out.println(msg1);
+
+            driver.findElement(By.id("")).click(); // For Reset to again start the loop for new data sending
+            sheet.getRow(i).createCell(3).setCellValue(msg);
+        }
+
+        FileOutputStream fos = new FileOutputStream(path);
+        wb.write(fos);
+        wb.close();
+
+        driver.navigate().back();
+        driver.get("url");
+    }
+
+    @Test(priority = 2)
+    @Parameters({ "username", "password" })
+    public void test2(String username, String password) {
+
+        driver.findElement(By.id("")).click(); // for opening login page
+        driver.findElement(By.id("")).sendKeys(username);
+        driver.findElement(By.id("")).sendKeys(password);
+    }
+
+    @Test(priority = 3, dataProvider = "AddingBook")
+    public void test3(String val1, String val2, String val3, String val4) {
+
+        driver.findElement(By.id("")).click(); // click on for a add a book
+
+        driver.findElement(By.id("")).clear(); // same as above
+        driver.findElement(By.id("")).sendKeys(val1); // id 2
+
+        driver.findElement(By.id("")).clear(); // same as id 2
+        driver.findElement(By.id("")).sendKeys(val2); // id 3
+
+        driver.findElement(By.id("")).clear(); // same as id 3
+        driver.findElement(By.id("")).sendKeys(val3); // id 4
+
+        driver.findElement(By.id("")).clear(); // same as id 4
+        driver.findElement(By.id("")).sendKeys(val4); // id 5
+
+        driver.findElement(By.id("")).click(); // for Add book button after passing the values
+
+        String msg = driver.switchTo().alert().getText();
+        System.out.println(msg);
+        Assert.assertEquals("Book Added Successfully", msg);
+        driver.switchTo().alert().accept();
+    }
+
+    @DataProvider(name = "AddingBook")
+    public Object[][] AddingBook() {
+
+        Object[][] ab = new Object[2][4];
+
+        ab[0][0] = "Fiction";
+        ab[0][1] = "pride and prejudice";
+        ab[0][2] = "978-0-596-52068-7";
+        ab[0][3] = "jane Austen";
+
+        ab[1][0] = "Non Fiction";
+        ab[1][1] = "A Breif History of Time";
+        ab[1][2] = "978-3-16-148410-0";
+        ab[1][3] = "Stephen Hawking";
+
+        return ab;
+    }
+
+    @Test(priority = 4)
+    public void test4() throws IOException {
+
+        driver.findElement(By.id("")).click(); // click on books link
+
+        Select s = new Select(driver.findElement(By.id(""))); // dropdown
+        s.selectByVisibleText("Category to be Fiction");
+
+        WebElement table = driver.findElement(By.id("")); // table id
+        List<WebElement> rows = table.findElements(By.tagName("tr"));
+        System.out.println(rows.size());
+
+        for (int i = 1; i < rows.size(); i++) {
+
+            List<WebElement> cols = rows.get(i).findElements(By.tagName("td"));
+            for (int j = 0; j < cols.size(); j++) {
+                System.out.print(cols.get(j).getText() + " ");
+            }
+            System.out.println();
+        }
+
+        File src = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
+        FileUtils.copyFile(src, new File("" + "screenshot.png"));
+    }
+
+    @AfterClass
+    public void teardown() {
+        driver.close();
+        driver.quit();
+    }
+}
